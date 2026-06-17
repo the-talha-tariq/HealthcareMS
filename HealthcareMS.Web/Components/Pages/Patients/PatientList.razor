@@ -1,0 +1,126 @@
+@page "/patients"
+@using HealthcareMS.Web.Models
+@using HealthcareMS.Web.Services
+@inject PatientApiService PatientApi
+@inject NavigationManager Navigation
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+<PageTitle>Patients - HealthcareMS</PageTitle>
+
+<div class="page-header">
+    <h2>Patients</h2>
+    <button class="btn btn-primary" @onclick="GoToCreate">+ New Patient</button>
+</div>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else if (patients.Count == 0)
+{
+    <p>No patients found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Blood Group</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var patient in patients)
+            {
+                <tr>
+                    <td>@patient.Id</td>
+                    <td>@patient.FullName</td>
+                    <td>@patient.Email</td>
+                    <td>@patient.Phone</td>
+                    <td>@patient.BloodGroup</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ViewAppointments(patient.Id)">Appointments</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePatient(patient.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th, .table td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    .table th {
+        background: #f5f5f5;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .btn-primary { background: #2196F3; color: white; }
+    .btn-sm { padding: 4px 10px; font-size: 13px; margin-right: 4px; }
+    .btn-info { background: #00bcd4; color: white; }
+    .btn-danger { background: #f44336; color: white; }
+</style>
+
+@code {
+    private List<PatientModel> patients = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPatients();
+    }
+
+    private async Task LoadPatients()
+    {
+        isLoading = true;
+        patients = await PatientApi.GetAllAsync();
+        isLoading = false;
+    }
+
+    private void GoToCreate()
+    {
+        Navigation.NavigateTo("/patients/create");
+    }
+
+    private void ViewAppointments(int patientId)
+    {
+        Navigation.NavigateTo($"/appointments/patient/{patientId}");
+    }
+
+    private async Task DeletePatient(int id)
+    {
+        var success = await PatientApi.DeleteAsync(id);
+        if (success)
+        {
+            await LoadPatients();
+        }
+    }
+}

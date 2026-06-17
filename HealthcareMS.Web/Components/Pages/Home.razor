@@ -1,0 +1,13 @@
+@page "/"
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            Navigation.NavigateTo("/patients");
+        }
+    }
+}

@@ -1,0 +1,89 @@
+# Build output
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM/
+ARM64/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Test results and coverage
+TestResults/
+coverage/
+coverage.xml
+coverage.cobertura.xml
+*.coverage
+*.coveragexml
+*.trx
+
+# .NET artifacts
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+artifacts/
+
+# ASP.NET local files
+appsettings.Development.local.json
+appsettings.Local.json
+appsettings.*.local.json
+Properties/launchSettings.local.json
+
+# Logs
+logs/
+*.log
+
+# User secrets, certificates, and keys
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+secrets.json
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# NuGet packages
+*.nupkg
+packages/
+
+# Node / frontend artifacts, if added later
+node_modules/
+dist/
+.next/
+.nuxt/
+coverage-final.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docker and local environment overrides
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
