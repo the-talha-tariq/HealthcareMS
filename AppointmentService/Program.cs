@@ -35,4 +35,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Auto-run migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppointmentDbContext>();
+    db.Database.Migrate();
+}
+
 app.Run();

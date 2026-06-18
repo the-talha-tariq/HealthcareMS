@@ -1,0 +1,200 @@
+version: '3.8'
+
+services:
+  # SQL Server
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: healthcare-sqlserver
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: ${MSSQL_PID}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - healthcare-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/opt/mssql-tools/bin/sqlcmd",
+          "-S",
+          "localhost",
+          "-U",
+          "sa",
+          "-P",
+          "${SA_PASSWORD}",
+          "-Q",
+          "SELECT 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: healthcare-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - healthcare-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Identity Service
+  identity-service:
+    build:
+      context: .
+      dockerfile: HealthcareMS/IdentityService/Dockerfile
+    container_name: healthcare-identity
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: >
+        Server=sqlserver;Database=HealthcareMS_IdentityDB;
+        User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+      Jwt__SecretKey: ${JWT_SECRET}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Jwt__ExpiryMinutes: ${JWT_EXPIRY_MINUTES}
+    ports:
+      - "5001:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+    restart: on-failure
+
+  # Patient Service
+  patient-service:
+    build:
+      context: .
+      dockerfile: HealthcareMS/PatientService/Dockerfile
+    container_name: healthcare-patient
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: >
+        Server=sqlserver;Database=HealthcareMS_PatientDB;
+        User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+    ports:
+      - "5002:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+    restart: on-failure
+
+  # Appointment Service
+  appointment-service:
+    build:
+      context: .
+      dockerfile: HealthcareMS/AppointmentService/Dockerfile
+    container_name: healthcare-appointment
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: >
+        Server=sqlserver;Database=HealthcareMS_AppointmentDB;
+        User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;
+      PatientService__BaseUrl: http://patient-service:8080
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USERNAME}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5003:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      patient-service:
+        condition: service_started
+    networks:
+      - healthcare-network
+    restart: on-failure
+
+  # Notification Service
+  notification-service:
+    build:
+      context: .
+      dockerfile: HealthcareMS/NotificationService/Dockerfile
+    container_name: healthcare-notification
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USERNAME}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      Mailjet__ApiKey: ${MAILJET_API_KEY}
+      Mailjet__SecretKey: ${MAILJET_SECRET_KEY}
+      Email__SenderEmail: ${MAILJET_SENDER_EMAIL}
+      Email__SenderName: ${MAILJET_SENDER_NAME}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - healthcare-network
+    restart: on-failure
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: HealthcareMS/ApiGateway/Dockerfile
+    container_name: healthcare-gateway
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      Jwt__SecretKey: ${JWT_SECRET}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+    ports:
+      - "5000:8080"
+    depends_on:
+      - identity-service
+      - patient-service
+      - appointment-service
+    networks:
+      - healthcare-network
+    restart: on-failure
+
+  # Blazor Web App
+  web:
+    build:
+      context: .
+      dockerfile: HealthcareMS/HealthcareMS.Web/Dockerfile
+    container_name: healthcare-web
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      GatewayUrl: http://api-gateway:8080/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api-gateway
+    networks:
+      - healthcare-network
+    restart: on-failure
+
+volumes:
+  sqlserver_data:
+  rabbitmq_data:
+
+networks:
+  healthcare-network:
+    driver: bridge
