@@ -21,6 +21,19 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/login";
         options.AccessDeniedPath = "/login";
         options.ExpireTimeSpan = TimeSpan.FromHours(1);
+        options.SlidingExpiration = false;
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            var accessToken = context.Principal?
+                .FindFirst("access_token")?.Value;
+
+            if (!JwtTokenUtilities.IsUnexpired(accessToken))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -46,6 +59,12 @@ builder.Services.AddHttpClient<PatientApiService>(client =>
 
 // Appointment API (with JWT handler)
 builder.Services.AddHttpClient<AppointmentApiService>(client =>
+{
+    client.BaseAddress = new Uri(gatewayUrl);
+}).AddHttpMessageHandler<JwtAuthHandler>();
+
+// AI Assistant API (with JWT handler)
+builder.Services.AddHttpClient<AIAssistantApiService>(client =>
 {
     client.BaseAddress = new Uri(gatewayUrl);
 }).AddHttpMessageHandler<JwtAuthHandler>();

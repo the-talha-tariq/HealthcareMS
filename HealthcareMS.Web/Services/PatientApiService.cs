@@ -14,7 +14,15 @@ namespace HealthcareMS.Web.Services
 
         public async Task<List<PatientModel>> GetAllAsync()
         {
-            var result = await _httpClient.GetFromJsonAsync<List<PatientModel>>("gateway/patients");
+            using var response = await _httpClient.GetAsync("gateway/patients");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                return new List<PatientModel>();
+
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content
+                .ReadFromJsonAsync<List<PatientModel>>();
             return result ?? new List<PatientModel>();
         }
 

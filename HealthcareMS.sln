@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityService", "Identity
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthcareMS.Web", "HealthcareMS.Web\HealthcareMS.Web.csproj", "{CC5092CD-B537-461D-9356-39A9D908E7DD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIAssistantService", "AIAssistantService\AIAssistantService.csproj", "{39852ED8-615E-411C-B916-FCD139803B5B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{CC5092CD-B537-461D-9356-39A9D908E7DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC5092CD-B537-461D-9356-39A9D908E7DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC5092CD-B537-461D-9356-39A9D908E7DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39852ED8-615E-411C-B916-FCD139803B5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39852ED8-615E-411C-B916-FCD139803B5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39852ED8-615E-411C-B916-FCD139803B5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39852ED8-615E-411C-B916-FCD139803B5B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +76,7 @@ Global
 		{34FF1796-345E-43D7-AB78-ECD4B3886695} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{5AEAF927-56C3-4826-AD56-CA4A79683DC7} = {18D4F777-AAAB-4B73-8745-985F4789DDB6}
 		{0D23F01E-A331-45EF-9AC8-FB7D2E246AA8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{39852ED8-615E-411C-B916-FCD139803B5B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5A0D373B-3A24-4C74-8805-EAE1CD00ED3C}
